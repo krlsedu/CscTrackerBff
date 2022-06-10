@@ -15,7 +15,9 @@ import java.util.List;
 @Service
 public class DispachService {
     @Value("${backend.host}")
-    private String backEndHost;
+    private String backendHost;
+    @Value("${backend.port}")
+    private String backendPort;
 
     private static void checkResponse(HttpResponse<String> response) {
         if (response.getStatus() < 200 || response.getStatus() > 299) {
@@ -75,7 +77,7 @@ public class DispachService {
 
     private String dispachGet() {
 
-        String url = backEndHost + RequestInfo.getPath();
+        String url = backendHost + ":" + backendPort + RequestInfo.getPath();
         var getRequest = Unirest.get(url);
 
         var headers = RequestInfo.getHeaders();
@@ -101,7 +103,7 @@ public class DispachService {
     }
 
     private String dispachPost() {
-        String url = backEndHost + RequestInfo.getPath();
+        String url = backendHost + ":" + backendPort + RequestInfo.getPath();
 
         var post = Unirest.post(url);
 
