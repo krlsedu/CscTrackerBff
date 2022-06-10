@@ -1,0 +1,19 @@
+version: '3'
+
+networks:
+  backend:
+    external: true
+
+services:
+  csctracker:
+    container_name: bff
+    hostname: bff
+    image: krlsedu/csctracker-bff
+    restart: always
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+    networks:
+      - backend
+    entrypoint: "java -Djava.security.egd=file:/dev/./urandom -jar app.jar"
+    volumes:
+      - /root/.cscTracker:/etc/cscTracker/.cscTracker
