@@ -6,6 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Log4j2
 public class DispachService {
     @Value("${backend.host}")
     private String backendHost;
@@ -62,6 +64,7 @@ public class DispachService {
                 try {
                     return conversor.toDList(dispachGet());
                 } catch (JsonSyntaxException e) {
+                    //fixme: 
                     e.printStackTrace();
                     return new ArrayList<>();
                 }
@@ -100,7 +103,9 @@ public class DispachService {
             throw new RuntimeException("Internal Server Error -> " + e.getMessage());
         }
 
-        return response.getBody();
+        String body = response.getBody();
+        log.info("Response: " + body);
+        return body;
     }
 
     private String dispachPost() {
