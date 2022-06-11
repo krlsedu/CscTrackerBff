@@ -96,7 +96,7 @@ public class DispachService {
                     .asString();
             checkResponse(response);
         } catch (UnirestException e) {
-            throw new RuntimeException("Internal Server Error");
+            throw new RuntimeException("Internal Server Error -> " + e.getMessage());
         }
 
         return response.getBody();

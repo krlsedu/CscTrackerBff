@@ -15,5 +15,3 @@ services:
     networks:
       - backend
     entrypoint: "java -Djava.security.egd=file:/dev/./urandom -jar app.jar"
-    volumes:
-      - /root/.cscTracker:/etc/cscTracker/.cscTracker
