@@ -62,6 +62,7 @@ public class DispachService {
                 try {
                     return conversor.toDList(dispachGet());
                 } catch (JsonSyntaxException e) {
+                    e.printStackTrace();
                     return new ArrayList<>();
                 }
             case "POST":
