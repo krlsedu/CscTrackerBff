@@ -7,6 +7,7 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -105,7 +106,7 @@ public class DispachService {
 
         String body = response.getBody();
         log.info("Response: " + body);
-        return body;
+        return StringEscapeUtils.escapeJson(body);
     }
 
     private String dispachPost() {
