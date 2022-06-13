@@ -2,12 +2,11 @@ package com.csctracker.bff.service;
 
 import com.csctracker.securitycore.configs.UnAuthorized;
 import com.csctracker.securitycore.dto.Conversor;
-import com.google.gson.JsonSyntaxException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -64,7 +63,7 @@ public class DispachService {
             case "GET":
                 try {
                     return conversor.toDList(dispachGet());
-                } catch (JsonSyntaxException e) {
+                } catch (JsonProcessingException e) {
                     //fixme: 
                     e.printStackTrace();
                     return new ArrayList<>();
@@ -104,9 +103,7 @@ public class DispachService {
             throw new RuntimeException("Internal Server Error -> " + e.getMessage());
         }
 
-        String body = response.getBody();
-//        log.info("Response: " + body);
-        return StringEscapeUtils.escapeJson(body);
+        return response.getBody();
     }
 
     private String dispachPost() {
