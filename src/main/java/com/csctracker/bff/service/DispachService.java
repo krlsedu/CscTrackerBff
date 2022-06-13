@@ -105,7 +105,7 @@ public class DispachService {
         }
 
         String body = response.getBody();
-        log.info("Response: " + body);
+//        log.info("Response: " + body);
         return StringEscapeUtils.escapeJson(body);
     }
 
