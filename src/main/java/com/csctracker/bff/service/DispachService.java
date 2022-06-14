@@ -1,7 +1,9 @@
 package com.csctracker.bff.service;
 
-import com.csctracker.securitycore.configs.UnAuthorized;
-import com.csctracker.securitycore.dto.Conversor;
+import com.csctracker.configs.UnAuthorized;
+import com.csctracker.dto.Conversor;
+import com.csctracker.securitycore.service.UserInfoService;
+import com.csctracker.service.RequestInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
@@ -16,10 +18,15 @@ import java.util.List;
 @Service
 @Log4j2
 public class DispachService {
-    @Value("${backend.host}")
-    private String backendHost;
-    @Value("${backend.port}")
-    private String backendPort;
+    private final UserInfoService userInfoService;
+    @Value("${datasource.host}")
+    private String datasourceHost;
+    @Value("${datasource.port}")
+    private String datasourcePort;
+
+    public DispachService(UserInfoService userInfoService) {
+        this.userInfoService = userInfoService;
+    }
 
     private static void checkResponse(HttpResponse<String> response) {
         if (response.getStatus() < 200 || response.getStatus() > 299) {
@@ -48,7 +55,7 @@ public class DispachService {
             case "POST":
                 try {
                     return (Z) conversor.toD(dispachPost());
-                } catch (Exception e) {
+                } catch (JsonProcessingException e) {
                     return null;
                 }
             default:
@@ -71,7 +78,7 @@ public class DispachService {
             case "POST":
                 try {
                     return conversor.toDList(dispachPost());
-                } catch (Exception e) {
+                } catch (JsonProcessingException e) {
                     return new ArrayList<>();
                 }
             default:
@@ -81,13 +88,15 @@ public class DispachService {
 
     private String dispachGet() {
 
-        String url = backendHost + ":" + backendPort + RequestInfo.getPath();
+        String url = datasourceHost + ":" + datasourcePort + RequestInfo.getPath();
         var getRequest = Unirest.get(url);
 
         var headers = RequestInfo.getHeaders();
         for (var header : headers.entrySet()) {
             getRequest.header(header.getKey(), header.getValue());
         }
+
+        getRequest.header("userName", userInfoService.getEmail());
 
         var parameters = RequestInfo.getParameters();
         for (var parameter : parameters.entrySet()) {
@@ -107,7 +116,7 @@ public class DispachService {
     }
 
     private String dispachPost() {
-        String url = backendHost + ":" + backendPort + RequestInfo.getPath();
+        String url = datasourceHost + ":" + datasourcePort + RequestInfo.getPath();
 
         var post = Unirest.post(url);
 
@@ -122,7 +131,6 @@ public class DispachService {
                     break;
             }
         }
-
 
         HttpResponse<String> response = null;
         try {
