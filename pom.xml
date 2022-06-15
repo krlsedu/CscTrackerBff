@@ -23,7 +23,7 @@
         <dependency>
             <groupId>com.csctracker</groupId>
             <artifactId>SecurityCore</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>
