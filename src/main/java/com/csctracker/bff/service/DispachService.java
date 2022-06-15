@@ -1,13 +1,11 @@
 package com.csctracker.bff.service;
 
-import com.csctracker.configs.UnAuthorized;
+import com.csctracker.bff.repository.RemoteRepository;
 import com.csctracker.dto.Conversor;
 import com.csctracker.securitycore.service.UserInfoService;
 import com.csctracker.service.RequestInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
-import kong.unirest.UnirestException;
+import io.micrometer.core.annotation.Timed;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,37 +22,28 @@ public class DispachService {
     @Value("${datasource.port}")
     private String datasourcePort;
 
-    public DispachService(UserInfoService userInfoService) {
+    private final RemoteRepository remoteRepository;
+
+    public DispachService(UserInfoService userInfoService, RemoteRepository remoteRepository) {
         this.userInfoService = userInfoService;
+        this.remoteRepository = remoteRepository;
     }
 
-    private static void checkResponse(HttpResponse<String> response) {
-        if (response.getStatus() < 200 || response.getStatus() > 299) {
-            switch (response.getStatus()) {
-                case 401:
-                case 403:
-                    throw new UnAuthorized();
-                case 404:
-                    throw new RuntimeException("Not Found");
-                default:
-                    throw new RuntimeException("Internal Server Error");
-            }
-        }
-    }
-
+    @Timed(value = "greeting.time", description = "Time taken to return greeting")
     public <Z> Z dispach(Class<Z> zClass) {
         var request = RequestInfo.getRequest();
         var conversor = new Conversor(zClass, zClass);
+        String url = datasourceHost + ":" + datasourcePort + RequestInfo.getPath();
         switch (request.getMethod()) {
             case "GET":
                 try {
-                    return (Z) conversor.toD(dispachGet());
+                    return (Z) conversor.toD(remoteRepository.dispachGet(url, userInfoService.getEmail()));
                 } catch (Exception e) {
                     return null;
                 }
             case "POST":
                 try {
-                    return (Z) conversor.toD(dispachPost());
+                    return (Z) conversor.toD(remoteRepository.dispachPost(url));
                 } catch (JsonProcessingException e) {
                     return null;
                 }
@@ -63,13 +52,15 @@ public class DispachService {
         }
     }
 
+    @Timed(value = "greeting.time", description = "Time taken to return greeting")
     public <Z> List<Z> dispachList(Class<Z> zClass) {
         var request = RequestInfo.getRequest();
         var conversor = new Conversor(zClass, zClass);
+        String url = datasourceHost + ":" + datasourcePort + RequestInfo.getPath();
         switch (request.getMethod()) {
             case "GET":
                 try {
-                    return conversor.toDList(dispachGet());
+                    return conversor.toDList(remoteRepository.dispachGet(url, userInfoService.getEmail()));
                 } catch (JsonProcessingException e) {
                     //fixme: 
                     e.printStackTrace();
@@ -77,71 +68,12 @@ public class DispachService {
                 }
             case "POST":
                 try {
-                    return conversor.toDList(dispachPost());
+                    return conversor.toDList(remoteRepository.dispachPost(url));
                 } catch (JsonProcessingException e) {
                     return new ArrayList<>();
                 }
             default:
                 throw new RuntimeException("Method not supported");
         }
-    }
-
-    private String dispachGet() {
-
-        String url = datasourceHost + ":" + datasourcePort + RequestInfo.getPath();
-        var getRequest = Unirest.get(url);
-
-        var headers = RequestInfo.getHeaders();
-        for (var header : headers.entrySet()) {
-            getRequest.header(header.getKey(), header.getValue());
-        }
-
-        getRequest.header("userName", userInfoService.getEmail());
-
-        var parameters = RequestInfo.getParameters();
-        for (var parameter : parameters.entrySet()) {
-            getRequest.queryString(parameter.getKey(), parameter.getValue());
-        }
-
-        HttpResponse<String> response = null;
-        try {
-            response = getRequest
-                    .asString();
-            checkResponse(response);
-        } catch (UnirestException e) {
-            throw new RuntimeException("Internal Server Error -> " + e.getMessage());
-        }
-
-        return response.getBody();
-    }
-
-    private String dispachPost() {
-        String url = datasourceHost + ":" + datasourcePort + RequestInfo.getPath();
-
-        var post = Unirest.post(url);
-
-        var headers = RequestInfo.getHeaders();
-        for (var header : headers.entrySet()) {
-            switch (header.getKey().toLowerCase()) {
-                case "content-type":
-                case "authorization":
-                    post.header(header.getKey(), header.getValue());
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        HttpResponse<String> response = null;
-        try {
-            response = post
-                    .body(RequestInfo.getBody())
-                    .asString();
-            checkResponse(response);
-        } catch (UnirestException e) {
-            throw new RuntimeException("Internal Server Error");
-        }
-
-        return response.getBody();
     }
 }
