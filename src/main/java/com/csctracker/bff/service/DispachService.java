@@ -7,7 +7,6 @@ import com.csctracker.service.RequestInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.micrometer.core.annotation.Timed;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,15 +16,13 @@ import java.util.List;
 @Log4j2
 public class DispachService {
     private final UserInfoService userInfoService;
-    @Value("${datasource.host}")
-    private String datasourceHost;
-    @Value("${datasource.port}")
-    private String datasourcePort;
+    private final RouteService routeService;
 
     private final RemoteRepository remoteRepository;
 
-    public DispachService(UserInfoService userInfoService, RemoteRepository remoteRepository) {
+    public DispachService(UserInfoService userInfoService, RouteService routeService, RemoteRepository remoteRepository) {
         this.userInfoService = userInfoService;
+        this.routeService = routeService;
         this.remoteRepository = remoteRepository;
     }
 
@@ -33,15 +30,17 @@ public class DispachService {
     public <Z> Z dispach(Class<Z> zClass) {
         var request = RequestInfo.getRequest();
         var conversor = new Conversor(zClass, zClass);
-        String url = datasourceHost + ":" + datasourcePort + RequestInfo.getPath();
+        String url;
         switch (request.getMethod()) {
             case "GET":
+                url = routeService.getUrl(RequestInfo.getPath());
                 try {
                     return (Z) conversor.toD(remoteRepository.dispachGet(url, userInfoService.getEmail()));
                 } catch (Exception e) {
                     return null;
                 }
             case "POST":
+                url = routeService.getUrl(RequestInfo.getPath());
                 try {
                     return (Z) conversor.toD(remoteRepository.dispachPost(url));
                 } catch (JsonProcessingException e) {
@@ -56,9 +55,10 @@ public class DispachService {
     public <Z> List<Z> dispachList(Class<Z> zClass) {
         var request = RequestInfo.getRequest();
         var conversor = new Conversor(zClass, zClass);
-        String url = datasourceHost + ":" + datasourcePort + RequestInfo.getPath();
+        String url;
         switch (request.getMethod()) {
             case "GET":
+                url = routeService.getUrl(RequestInfo.getPath());
                 try {
                     return conversor.toDList(remoteRepository.dispachGet(url, userInfoService.getEmail()));
                 } catch (JsonProcessingException e) {
@@ -67,6 +67,7 @@ public class DispachService {
                     return new ArrayList<>();
                 }
             case "POST":
+                url = routeService.getUrl(RequestInfo.getPath());
                 try {
                     return conversor.toDList(remoteRepository.dispachPost(url));
                 } catch (JsonProcessingException e) {
