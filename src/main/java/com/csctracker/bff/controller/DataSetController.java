@@ -1,5 +1,6 @@
 package com.csctracker.bff.controller;
 
+import com.csctracker.bff.dto.BarDataSetDTO;
 import com.csctracker.bff.dto.DataSetDTO;
 import com.csctracker.bff.dto.TimeLinePointDTO;
 import com.csctracker.bff.service.DispachService;
@@ -33,5 +34,13 @@ public class DataSetController {
             @RequestParam(value = "period", required = false) String period,
             @RequestParam(value = "value", required = false) String value) {
         return new ResponseEntity<>(dispachService.dispachList(DataSetDTO.class), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/bar-dataset", produces = "application/json")
+    public ResponseEntity<BarDataSetDTO> getBarDataSet(
+            @RequestParam(value = "metric") String metric,
+            @RequestParam(value = "period", required = false) String period,
+            @RequestParam(value = "value", required = false) String value) {
+        return new ResponseEntity<>(dispachService.dispach(BarDataSetDTO.class), HttpStatus.OK);
     }
 }
