@@ -2,6 +2,7 @@ package com.csctracker.bff.repository;
 
 import com.csctracker.configs.UnAuthorized;
 import com.csctracker.service.RequestInfo;
+import kong.unirest.HttpRequestWithBody;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
@@ -51,15 +52,29 @@ public class RemoteRepository {
     }
 
     public String dispachPost(String url) {
+        return dispachPost(url, null);
+    }
 
-        var post = Unirest.post(url);
+    public String dispachPost(String url, String userName) {
+        return dispach(userName, Unirest.post(url));
+    }
+
+    public String dispachDelete(String url, String userName) {
+        return dispach(userName, Unirest.delete(url));
+    }
+
+    public String dispach(String userName, HttpRequestWithBody request) {
+
+        if (userName != null) {
+            request.header("userName", userName);
+        }
 
         var headers = RequestInfo.getHeaders();
         for (var header : headers.entrySet()) {
             switch (header.getKey().toLowerCase()) {
                 case "content-type":
                 case "authorization":
-                    post.header(header.getKey(), header.getValue());
+                    request.header(header.getKey(), header.getValue());
                     break;
                 default:
                     break;
@@ -68,7 +83,7 @@ public class RemoteRepository {
 
         HttpResponse<String> response = null;
         try {
-            response = post
+            response = request
                     .body(RequestInfo.getBody())
                     .asString();
             checkResponse(response);

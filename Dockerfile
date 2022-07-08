@@ -6,4 +6,4 @@ ARG JAR_FILE=target/csctracker-bff.jar
 
 COPY ${JAR_FILE} app.jar
 
-ENTRYPOINT ["java","-Dfile.encoding=UTF-8","-jar","app.jar"]
+ENTRYPOINT ["java","-Dfile.encoding=UTF-8 -XX:+UseSerialGC","-jar","app.jar"]
