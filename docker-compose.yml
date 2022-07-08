@@ -14,4 +14,4 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
     networks:
       - backend
-    entrypoint: "java -Djava.security.egd=file:/dev/./urandom -jar app.jar"
+    entrypoint: "java -Djava.security.egd=file:/dev/./urandom -XX:+UseSerialGC -jar app.jar"
